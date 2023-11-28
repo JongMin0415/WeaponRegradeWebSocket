@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({     port:8000,
-  host:'ws://port-0-weaponregradewebsocket-12fhqa2bln15fvi3.sel5.cloudtype.app/'},()=>{              //소켓서버를 포트 8000번에 시작 시킨다.
+  host:'wss://port-0-weaponregradewebsocket-12fhqa2bln15fvi3.sel5.cloudtype.app/'},()=>{              //소켓서버를 포트 8000번에 시작 시킨다.
     console.log('서버 시작');
 });
 
