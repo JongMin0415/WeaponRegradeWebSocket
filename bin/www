@@ -1,90 +1,56 @@
-#!/usr/bin/env node
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port:8000},()=>{              //소켓서버를 포트 8000번에 시작 시킨다.
+    console.log('서버 시작');
+});
 
-/**
- * Module dependencies.
- */
+const userList = [];
 
-var app = require('../app');
-var debug = require('debug')('myapp:server');
-var http = require('http');
+wss.on('connection', function connections(ws){      //커넥션이 되었을 때
+    ws.clientID = genKey(8);
 
-/**
- * Get port from environment and store in Express.
- */
+    ws.on('message',(data) =>{
+        const jsonData = JSON.parse(data);
+        console.log('받은 데이터 : ', jsonData);
 
-var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
+        if(jsonData.requestType == 10)
+        {
+            ws.send(JSON.stringify(userList));
+        }
+        else if(jsonData.requestType == 20)
+        {
+            ws.send(JSON.stringify(userList));
+        }
 
-/**
- * Create HTTP server.
- */
+        wss.clients.forEach((client)=>
+        {
+            client.send(data);
+        })
+    });
 
-var server = http.createServer(app);
+    ws.on('close',()=>{
+        const index = userList.indexOf(ws.clientID);
+        if(index !== -1)
+        {
+            console.log('클라이언트가 해제됨 - ID : ',ws.clientID);
+            userList.splice(index,1);
+        } 
+    });
+    //새로 연결 된 클라이언트를 유저 리스트에 추가
+    userList.push(ws.clientID);
+    ws.send(JSON.stringify({clientID : ws.clientID}));
+    console.log('클라이언트 연결 - ID : ', ws.clientID);
+})
+wss.on('listening',()=>{
+    console.log('리스닝...');
+})
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+function genKey(length){
+    let result = '';
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return false;
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+    for(let i = 0; i< length; i++)
+    {
+        result += characters.charAt(Math.floor(Math.random()* characters.length));
+    }
+    return result;
 }
