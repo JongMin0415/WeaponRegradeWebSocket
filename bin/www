@@ -6,7 +6,8 @@ const wss = new WebSocket.Server({ port:8000},()=>{              //소켓서버�
 const userList = [];
 
 wss.on('connection', function connections(ws){      //커넥션이 되었을 때
-    ws.clientID = genKey(8);
+  console.log("연결은 됨");  
+  ws.clientID = genKey(8);
 
     ws.on('message',(data) =>{
         const jsonData = JSON.parse(data);
